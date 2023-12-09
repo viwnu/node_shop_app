@@ -11,6 +11,7 @@ npm i
 ## DataBase
 
 **Requred constans**(in .env file):
+
 PS_PASSWORD
 PORT
 JWT_ACCESS_SECRET
