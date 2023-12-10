@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 
-import tokenController from '../db.services/single.table.db.service'
+import { AppDataSource } from '../data-source'
+import { Tokens } from '../entity/Tokens'
 
 class TokenService {
     generateTokens(payload: string | object) {
@@ -30,26 +31,27 @@ class TokenService {
         }
     }
 
-    async saveToken(userId: string | number, refreshToken: string) {
-        const tokenData = await tokenController.getByField('tokens', 'user_id', userId)
-        if (tokenData instanceof TypeError) return null
-        if (tokenData[0]) {
-            const updatedRow = await tokenController.update('tokens', 'user_id', {user_id: userId, refresh_token: refreshToken})
-            return updatedRow
+    async saveToken(userId: number, refreshToken: string) {
+        const candidate = await AppDataSource.manager.findOneBy(Tokens, {user_id: userId})
+
+        if (candidate !== null) {
+            await AppDataSource.manager.merge(Tokens, candidate, {refresh_token: refreshToken})
+            const updatedToken = await AppDataSource.manager.save(candidate)
+            return updatedToken
         }
-        const token = await tokenController.create('tokens', [{user_id: userId, refresh_token: refreshToken}])
-        return token
+
+        const createdToken = await AppDataSource.manager.create(Tokens, {user_id: userId, refresh_token: refreshToken})
+        const savedToken = await AppDataSource.manager.save(Tokens, createdToken)
+        return savedToken
     }
 
     async removeToken(refreshToken: string) {
-        const tokenData = await tokenController.delete('tokens', 'refresh_token', refreshToken)
-        return tokenData
+        return await AppDataSource.manager.delete(Tokens, { refresh_token: refreshToken })
     }
 
     async findToken(refreshToken: string) {
-        const tokenData = await tokenController.getByField('tokens', 'refresh_token', refreshToken)
-        if (tokenData instanceof TypeError) return null
-        return tokenData[0]
+        const token = await AppDataSource.manager.findOneBy(Tokens, { refresh_token: refreshToken })
+        return token
     }
 }
 

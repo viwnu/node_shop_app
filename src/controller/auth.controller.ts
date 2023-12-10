@@ -48,7 +48,7 @@ class authController {
     async refresh(req: Request, res: Response, next: (arg0: ApiError) => void) {
         try {
             const {refreshToken} = req.cookies;
-            const userData = await userService.refresh(refreshToken);
+            const userData = await userService.refresh(refreshToken)
             res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true})
             return res.json(userData);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
