@@ -22,8 +22,7 @@ export default function (role: string = 'USER') {
             if(decodedData.user_role !== 'ADMIN') {
                 req.body.user_id = decodedData.userId
                 req.body.user_role = decodedData.user_role
-            }
-            if(req.body.user_id === decodedData.userId) {
+            } else if(req.body.user_id === decodedData.userId) {
                 return res.status(403).json({message: `Use "api/auth/update" instead`})
             }
             next()

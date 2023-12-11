@@ -27,3 +27,48 @@
     npm build // - build to ./build directory
 ```
 
+## Endpoints
+
+- api
+    - auth
+        - registration body:
+            ```
+            {
+                "firstname": "admin",
+                "surname": "for_test",
+                "lastname": "",
+                "email": "admin@email.com",   // required
+                "password": "admin"           // required
+            }
+            ```
+        - login
+        - logout
+        - refresh
+        - update
+    - products
+    - user (allowed for role user by acces bearer token in headers)
+        - cart
+            - .post
+            - .get
+            - .put
+            - .delete
+        - orders
+            - .post
+            - .get
+    - admin (allowed for role admin by acces bearer token in headers)
+        - users
+            - .get
+            - /:user_id .get
+            - .put
+            - /:user_id .delete
+        - products
+            - .post
+            - .get
+            - /:user_id .get
+            - .put
+            - /:user_id .delete
+        - orders
+            - .get
+            - /user/:user_id .get
+            - .put
+            - /:order_id . delete

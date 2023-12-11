@@ -1,13 +1,11 @@
 import express, { Request, Response } from 'express'
 
 import userController from '../db.services/single.table.db.service'
-import userProductRouter from './user.product.routes'
 import userCartRouter from './user.cart.routes'
 import userOrdersRouter from './user.orders.routes'
 
 const router = express.Router()
 
-router.use('/products', userProductRouter)
 router.use('/cart', userCartRouter)
 router.use('/orders', userOrdersRouter)
 

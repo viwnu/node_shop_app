@@ -1,40 +1,26 @@
 import express, { Request, Response } from 'express'
 
-import compositTablesController from '../db.services/composit.tables.service'
-
-import { Product, customTablesNames } from '../types.ts/types'
 import { ApiError } from '../exceptions/api.error'
+
+import orderService from '../services/order.service'
 
 const router = express.Router()
 
-const orderTableNames: customTablesNames = {
-    primaryTableName: 'orders',
-    secondaryTableName: 'orders_details',
-    primaryIDName: 'customer_id',
-    secondaryIDName: 'order_id'
-}
-
-const cartsTableNames: customTablesNames = {
-    primaryTableName: 'carts',
-    secondaryTableName: 'carts_details',
-    primaryIDName: 'customer_id',
-    secondaryIDName: 'cart_id'
-}
-
 router.post('/', async (req: Request, res: Response, next: (arg0: ApiError) => void) => {
     try {
-        const cartRows = await compositTablesController.get(cartsTableNames, req.body.user_id)
-        await compositTablesController.delete(cartsTableNames, req.body.user_id)
-        const orderRows = cartRows[0].map((row) => ({product_id: row.product_id, quantity: row.quantity}))
-        const response = await compositTablesController.create<Product>(orderTableNames, req.body.user_id, orderRows)
+        const response = await orderService.create(req.body.user_id)
         res.json(response)
     } catch (error) {
         next(error as ApiError)
     }
 })
-router.get('/', async (req: Request, res: Response) => {
-    const response = await compositTablesController.get(orderTableNames, req.body.user_id)
-    res.json(response instanceof TypeError ?response :response)
+router.get('/', async (req: Request, res: Response, next: (arg0: ApiError) => void) => {
+    try {
+        const response = await orderService.getBy('user_id', req.body.user_id)
+        res.json(response)
+    } catch (error) {
+        next(error as ApiError)
+    }
 })
 
 export default router
