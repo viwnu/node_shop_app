@@ -16,6 +16,30 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: user_user_role_enum; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.user_user_role_enum AS ENUM (
+    'ADMIN',
+    'USER'
+);
+
+
+ALTER TYPE public.user_user_role_enum OWNER TO postgres;
+
+--
+-- Name: users_user_role_enum; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.users_user_role_enum AS ENUM (
+    'ADMIN',
+    'USER'
+);
+
+
+ALTER TYPE public.users_user_role_enum OWNER TO postgres;
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -26,7 +50,7 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.carts (
     cart_id integer NOT NULL,
-    customer_id integer NOT NULL
+    user_id integer NOT NULL
 );
 
 
@@ -36,14 +60,22 @@ ALTER TABLE public.carts OWNER TO postgres;
 -- Name: carts_cart_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-ALTER TABLE public.carts ALTER COLUMN cart_id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME public.carts_cart_id_seq
+CREATE SEQUENCE public.carts_cart_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
-    CACHE 1
-);
+    CACHE 1;
+
+
+ALTER SEQUENCE public.carts_cart_id_seq OWNER TO postgres;
+
+--
+-- Name: carts_cart_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.carts_cart_id_seq OWNED BY public.carts.cart_id;
 
 
 --
@@ -51,44 +83,35 @@ ALTER TABLE public.carts ALTER COLUMN cart_id ADD GENERATED ALWAYS AS IDENTITY (
 --
 
 CREATE TABLE public.carts_details (
+    cart_details_id integer NOT NULL,
     cart_id integer NOT NULL,
     product_id integer NOT NULL,
-    quantity integer NOT NULL
+    quantity real NOT NULL
 );
 
 
 ALTER TABLE public.carts_details OWNER TO postgres;
 
 --
--- Name: users; Type: TABLE; Schema: public; Owner: postgres
+-- Name: carts_details_cart_details_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE public.users (
-    user_id integer NOT NULL,
-    firstname character varying(256),
-    surname character varying(256),
-    lastname character varying(256),
-    email character varying(256) NOT NULL,
-    password character varying(256) NOT NULL,
-    user_role character varying(32) DEFAULT 'USER'::character varying NOT NULL,
-    CONSTRAINT chk_user_role CHECK ((((user_role)::text = 'ADMIN'::text) OR ((user_role)::text = 'USER'::text)))
-);
-
-
-ALTER TABLE public.users OWNER TO postgres;
-
---
--- Name: customer_customer_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-ALTER TABLE public.users ALTER COLUMN user_id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME public.customer_customer_id_seq
+CREATE SEQUENCE public.carts_details_cart_details_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
-    CACHE 1
-);
+    CACHE 1;
+
+
+ALTER SEQUENCE public.carts_details_cart_details_id_seq OWNER TO postgres;
+
+--
+-- Name: carts_details_cart_details_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.carts_details_cart_details_id_seq OWNED BY public.carts_details.cart_details_id;
 
 
 --
@@ -97,7 +120,8 @@ ALTER TABLE public.users ALTER COLUMN user_id ADD GENERATED ALWAYS AS IDENTITY (
 
 CREATE TABLE public.orders (
     order_id integer NOT NULL,
-    customer_id integer NOT NULL
+    user_id integer NOT NULL,
+    order_date timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -108,26 +132,57 @@ ALTER TABLE public.orders OWNER TO postgres;
 --
 
 CREATE TABLE public.orders_details (
+    order_details_id integer NOT NULL,
     order_id integer NOT NULL,
     product_id integer NOT NULL,
-    quantity integer NOT NULL
+    quantity real NOT NULL
 );
 
 
 ALTER TABLE public.orders_details OWNER TO postgres;
 
 --
--- Name: orders_order_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: orders_details_order_details_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-ALTER TABLE public.orders ALTER COLUMN order_id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME public.orders_order_id_seq
+CREATE SEQUENCE public.orders_details_order_details_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
-    CACHE 1
-);
+    CACHE 1;
+
+
+ALTER SEQUENCE public.orders_details_order_details_id_seq OWNER TO postgres;
+
+--
+-- Name: orders_details_order_details_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.orders_details_order_details_id_seq OWNED BY public.orders_details.order_details_id;
+
+
+--
+-- Name: orders_order_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.orders_order_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.orders_order_id_seq OWNER TO postgres;
+
+--
+-- Name: orders_order_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.orders_order_id_seq OWNED BY public.orders.order_id;
 
 
 --
@@ -136,11 +191,11 @@ ALTER TABLE public.orders ALTER COLUMN order_id ADD GENERATED ALWAYS AS IDENTITY
 
 CREATE TABLE public.products (
     product_id integer NOT NULL,
-    product_name text NOT NULL,
-    manufacture text,
-    category text,
-    price real,
-    description text
+    product_name character varying NOT NULL,
+    manufacture character varying,
+    category character varying,
+    price real NOT NULL,
+    description character varying
 );
 
 
@@ -150,14 +205,22 @@ ALTER TABLE public.products OWNER TO postgres;
 -- Name: products_product_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-ALTER TABLE public.products ALTER COLUMN product_id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME public.products_product_id_seq
+CREATE SEQUENCE public.products_product_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
-    CACHE 1
-);
+    CACHE 1;
+
+
+ALTER SEQUENCE public.products_product_id_seq OWNER TO postgres;
+
+--
+-- Name: products_product_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.products_product_id_seq OWNED BY public.products.product_id;
 
 
 --
@@ -166,17 +229,99 @@ ALTER TABLE public.products ALTER COLUMN product_id ADD GENERATED ALWAYS AS IDEN
 
 CREATE TABLE public.tokens (
     user_id integer NOT NULL,
-    refresh_token character varying(256) NOT NULL
+    refresh_token character varying NOT NULL
 );
 
 
 ALTER TABLE public.tokens OWNER TO postgres;
 
 --
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.users (
+    user_id integer NOT NULL,
+    "firstName" character varying,
+    "surName" character varying,
+    "lastName" character varying,
+    email character varying NOT NULL,
+    password character varying NOT NULL,
+    user_role public.users_user_role_enum DEFAULT 'USER'::public.users_user_role_enum NOT NULL
+);
+
+
+ALTER TABLE public.users OWNER TO postgres;
+
+--
+-- Name: users_user_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.users_user_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.users_user_id_seq OWNER TO postgres;
+
+--
+-- Name: users_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.users_user_id_seq OWNED BY public.users.user_id;
+
+
+--
+-- Name: carts cart_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.carts ALTER COLUMN cart_id SET DEFAULT nextval('public.carts_cart_id_seq'::regclass);
+
+
+--
+-- Name: carts_details cart_details_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.carts_details ALTER COLUMN cart_details_id SET DEFAULT nextval('public.carts_details_cart_details_id_seq'::regclass);
+
+
+--
+-- Name: orders order_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.orders ALTER COLUMN order_id SET DEFAULT nextval('public.orders_order_id_seq'::regclass);
+
+
+--
+-- Name: orders_details order_details_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.orders_details ALTER COLUMN order_details_id SET DEFAULT nextval('public.orders_details_order_details_id_seq'::regclass);
+
+
+--
+-- Name: products product_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.products ALTER COLUMN product_id SET DEFAULT nextval('public.products_product_id_seq'::regclass);
+
+
+--
+-- Name: users user_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.users_user_id_seq'::regclass);
+
+
+--
 -- Data for Name: carts; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.carts (cart_id, customer_id) FROM stdin;
+COPY public.carts (cart_id, user_id) FROM stdin;
+1	2
 \.
 
 
@@ -184,7 +329,9 @@ COPY public.carts (cart_id, customer_id) FROM stdin;
 -- Data for Name: carts_details; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.carts_details (cart_id, product_id, quantity) FROM stdin;
+COPY public.carts_details (cart_details_id, cart_id, product_id, quantity) FROM stdin;
+3	1	4	1
+4	1	3	10
 \.
 
 
@@ -192,8 +339,9 @@ COPY public.carts_details (cart_id, product_id, quantity) FROM stdin;
 -- Data for Name: orders; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.orders (order_id, customer_id) FROM stdin;
-1	2
+COPY public.orders (order_id, user_id, order_date) FROM stdin;
+3	2	2023-12-11 03:02:19.90275
+4	2	2023-12-11 03:02:49.804837
 \.
 
 
@@ -201,9 +349,11 @@ COPY public.orders (order_id, customer_id) FROM stdin;
 -- Data for Name: orders_details; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.orders_details (order_id, product_id, quantity) FROM stdin;
-1	4	7
-1	5	10
+COPY public.orders_details (order_details_id, order_id, product_id, quantity) FROM stdin;
+5	3	1	7
+6	3	3	10
+7	4	1	7
+8	4	3	10
 \.
 
 
@@ -212,11 +362,9 @@ COPY public.orders_details (order_id, product_id, quantity) FROM stdin;
 --
 
 COPY public.products (product_id, product_name, manufacture, category, price, description) FROM stdin;
-1	TV	Sony	electronics	125	full hd 4k android TV
-2	TV	Sony	electronics	125	full hd 4k android TV
 3	TV	Sony	electronics	125	full hd 4k android TV
 4	TV	Sony	electronics	125	full hd 4k android TV
-5	TV	Sony	electronics	125	full hd 4k android TV
+1	refrijerator	SAMSUNG	citchen	12	very cold
 \.
 
 
@@ -225,9 +373,9 @@ COPY public.products (product_id, product_name, manufacture, category, price, de
 --
 
 COPY public.tokens (user_id, refresh_token) FROM stdin;
-1	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJfcm9sZSI6IlVTRVIiLCJpYXQiOjE3MDIwNTU1NDMsImV4cCI6MTcwMjA1NzM0M30.o9Nt6hCEBrVWWMLTraG0kysxeJLUQflwCoG5sh8GrjU
-2	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsInVzZXJfcm9sZSI6IlVTRVIiLCJpYXQiOjE3MDIxMjk3NjgsImV4cCI6MTcwMjEzMTU2OH0.wGFXBW1cJVldTm48Kw3XridaOhhe9MzsTTitiQOUIXk
-3	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInVzZXJfcm9sZSI6IkFETUlOIiwiaWF0IjoxNzAyMTQwMzMwLCJleHAiOjE3MDIxNDIxMzB9.0PB3fQQ1X5aJ2Oam4UJAevIR22j7NbYbc2QzQs5_rvU
+1	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJfcm9sZSI6IlVTRVIiLCJpYXQiOjE3MDIyMzUyMTYsImV4cCI6MTcwMjIzNzAxNn0.HVsAV2vfIApziu392ibB_VbTwH18JZDnSEeEUT7GGQc
+2	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsInVzZXJfcm9sZSI6IlVTRVIiLCJpYXQiOjE3MDIyNTQzNTEsImV4cCI6MTcwMjI1NjE1MX0.WN_GWcuw3zEUv9fRLEMlvQrd4xsNHl_go9zBy-xmXp0
+3	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInVzZXJfcm9sZSI6IkFETUlOIiwiaWF0IjoxNzAyMjU3NzI1LCJleHAiOjE3MDIyNTk1MjV9.3IBDVKRxA7_KcOFVak3wN2jAmACPvvJqr9vOInhL2d4
 \.
 
 
@@ -235,10 +383,10 @@ COPY public.tokens (user_id, refresh_token) FROM stdin;
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.users (user_id, firstname, surname, lastname, email, password, user_role) FROM stdin;
-2	ilon	mask	petrovich	ilon@mask.pet	$2a$04$whKZAs6GEZDrX7VH9JZwtO2SrjjH3He3Gj8kRhc58X8xpTiSTTyp6	USER
-1	vasia-loh	petrov	vasilievich	vasiliy@vasilievich.vas	$2a$04$mk6TbXanT8ZtI/jn8Acfy.TYXZf7MqbSVZdxh3ddQlIKnnVirMDZ.	USER
-3	admin	adminov	adminovich	adminskaya@pochta.ad	$2a$04$cQzpAbcsjnp/qCZYFcZvgeuYjP8rhN9F8pt3Kluyn7ih9xQXPCmxK	ADMIN
+COPY public.users (user_id, "firstName", "surName", "lastName", email, password, user_role) FROM stdin;
+1	another	for	test	updated@email.com	$2a$04$YkM0E4ML7DnAV4/0g8HcVOGrXahOMWppBbsMNlCZCsFjfLn10YRKy	USER
+3	admin	for_test	\N	admin@email.com	$2a$04$.h5oLh.nGo7wsqtmZrrpn.CsKT3PKQ8sSgNovpYtx2CclYtYdSInG	ADMIN
+2	super	puper	test	test1@email.com	$2a$04$lO.qtm3OTuBvrlzf7KirluEPm.lFPj5hQbbPXydcE19ofBmSjtwOy	USER
 \.
 
 
@@ -250,144 +398,174 @@ SELECT pg_catalog.setval('public.carts_cart_id_seq', 1, true);
 
 
 --
--- Name: customer_customer_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: carts_details_cart_details_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.customer_customer_id_seq', 3, true);
+SELECT pg_catalog.setval('public.carts_details_cart_details_id_seq', 4, true);
+
+
+--
+-- Name: orders_details_order_details_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.orders_details_order_details_id_seq', 12, true);
 
 
 --
 -- Name: orders_order_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.orders_order_id_seq', 1, true);
+SELECT pg_catalog.setval('public.orders_order_id_seq', 4, true);
 
 
 --
 -- Name: products_product_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.products_product_id_seq', 5, true);
+SELECT pg_catalog.setval('public.products_product_id_seq', 4, true);
 
 
 --
--- Name: carts pk_carts_cart_id; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.users_user_id_seq', 3, true);
+
+
+--
+-- Name: carts_details PK_0e50b2403eef26ee10cdd18e6d4; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.carts_details
+    ADD CONSTRAINT "PK_0e50b2403eef26ee10cdd18e6d4" PRIMARY KEY (cart_details_id);
+
+
+--
+-- Name: carts PK_2fb47cbe0c6f182bb31c66689e9; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.carts
-    ADD CONSTRAINT pk_carts_cart_id PRIMARY KEY (cart_id);
+    ADD CONSTRAINT "PK_2fb47cbe0c6f182bb31c66689e9" PRIMARY KEY (cart_id);
 
 
 --
--- Name: users pk_customer_customer_id; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tokens PK_8769073e38c365f315426554ca5; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.tokens
+    ADD CONSTRAINT "PK_8769073e38c365f315426554ca5" PRIMARY KEY (user_id);
+
+
+--
+-- Name: users PK_96aac72f1574b88752e9fb00089; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.users
-    ADD CONSTRAINT pk_customer_customer_id PRIMARY KEY (user_id);
+    ADD CONSTRAINT "PK_96aac72f1574b88752e9fb00089" PRIMARY KEY (user_id);
 
 
 --
--- Name: orders pk_orders_order_id; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.orders
-    ADD CONSTRAINT pk_orders_order_id PRIMARY KEY (order_id);
-
-
---
--- Name: products pk_products_product_id; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: products PK_a8940a4bf3b90bd7ac15c8f4dd9; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.products
-    ADD CONSTRAINT pk_products_product_id PRIMARY KEY (product_id);
+    ADD CONSTRAINT "PK_a8940a4bf3b90bd7ac15c8f4dd9" PRIMARY KEY (product_id);
 
 
 --
--- Name: tokens tokens_refresh_token_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: orders_details PK_c99e622f3cb93e6cffc6a5bd17b; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.tokens
-    ADD CONSTRAINT tokens_refresh_token_key UNIQUE (refresh_token);
-
-
---
--- Name: tokens tokens_user_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.tokens
-    ADD CONSTRAINT tokens_user_id_key UNIQUE (user_id);
+ALTER TABLE ONLY public.orders_details
+    ADD CONSTRAINT "PK_c99e622f3cb93e6cffc6a5bd17b" PRIMARY KEY (order_details_id);
 
 
 --
--- Name: carts unique_carts_customer_id; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.carts
-    ADD CONSTRAINT unique_carts_customer_id UNIQUE (customer_id);
-
-
---
--- Name: carts_details unique_product_id; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.carts_details
-    ADD CONSTRAINT unique_product_id UNIQUE (product_id);
-
-
---
--- Name: carts fk_carts_customer_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.carts
-    ADD CONSTRAINT fk_carts_customer_id FOREIGN KEY (customer_id) REFERENCES public.users(user_id);
-
-
---
--- Name: carts_details fk_carts_details_cart_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.carts_details
-    ADD CONSTRAINT fk_carts_details_cart_id FOREIGN KEY (cart_id) REFERENCES public.carts(cart_id);
-
-
---
--- Name: carts_details fk_carts_details_product_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.carts_details
-    ADD CONSTRAINT fk_carts_details_product_id FOREIGN KEY (product_id) REFERENCES public.products(product_id);
-
-
---
--- Name: orders fk_orders_customer_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: orders PK_cad55b3cb25b38be94d2ce831db; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.orders
-    ADD CONSTRAINT fk_orders_customer_id FOREIGN KEY (customer_id) REFERENCES public.users(user_id);
+    ADD CONSTRAINT "PK_cad55b3cb25b38be94d2ce831db" PRIMARY KEY (order_id);
 
 
 --
--- Name: orders_details fk_orders_details_order_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: carts UQ_2ec1c94a977b940d85a4f498aea; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.orders_details
-    ADD CONSTRAINT fk_orders_details_order_id FOREIGN KEY (order_id) REFERENCES public.orders(order_id);
-
-
---
--- Name: orders_details fk_orders_details_product_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.orders_details
-    ADD CONSTRAINT fk_orders_details_product_id FOREIGN KEY (product_id) REFERENCES public.products(product_id);
+ALTER TABLE ONLY public.carts
+    ADD CONSTRAINT "UQ_2ec1c94a977b940d85a4f498aea" UNIQUE (user_id);
 
 
 --
--- Name: tokens fk_tokens_user_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tokens UQ_66b773780ac1e48b1494885208b; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.tokens
-    ADD CONSTRAINT fk_tokens_user_id FOREIGN KEY (user_id) REFERENCES public.users(user_id);
+    ADD CONSTRAINT "UQ_66b773780ac1e48b1494885208b" UNIQUE (refresh_token);
+
+
+--
+-- Name: users UQ_97672ac88f789774dd47f7c8be3; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE (email);
+
+
+--
+-- Name: carts FK_2ec1c94a977b940d85a4f498aea; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.carts
+    ADD CONSTRAINT "FK_2ec1c94a977b940d85a4f498aea" FOREIGN KEY (user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: carts_details FK_3fa1b7714e35c13c9c8bb2d064b; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.carts_details
+    ADD CONSTRAINT "FK_3fa1b7714e35c13c9c8bb2d064b" FOREIGN KEY (product_id) REFERENCES public.products(product_id);
+
+
+--
+-- Name: tokens FK_8769073e38c365f315426554ca5; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.tokens
+    ADD CONSTRAINT "FK_8769073e38c365f315426554ca5" FOREIGN KEY (user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: orders FK_a922b820eeef29ac1c6800e826a; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT "FK_a922b820eeef29ac1c6800e826a" FOREIGN KEY (user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: carts_details FK_c58a8bdc72c918c2f50b16035c4; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.carts_details
+    ADD CONSTRAINT "FK_c58a8bdc72c918c2f50b16035c4" FOREIGN KEY (cart_id) REFERENCES public.carts(cart_id);
+
+
+--
+-- Name: orders_details FK_e5e110d720f2ff13a3ef9c45765; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.orders_details
+    ADD CONSTRAINT "FK_e5e110d720f2ff13a3ef9c45765" FOREIGN KEY (product_id) REFERENCES public.products(product_id);
+
+
+--
+-- Name: orders_details FK_f5cefb92297d781e62607b608fd; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.orders_details
+    ADD CONSTRAINT "FK_f5cefb92297d781e62607b608fd" FOREIGN KEY (order_id) REFERENCES public.orders(order_id);
 
 
 --
