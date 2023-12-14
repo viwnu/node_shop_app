@@ -15,9 +15,8 @@ class authController {
             const userData = await userService.registration(req.body)
             res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true})
             return res.json(userData)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (e: any) {
-            next(e)
+        } catch (e) {
+            next(e as ApiError)
         }
     }
 
@@ -27,9 +26,8 @@ class authController {
             const userData = await userService.login(email, password);
             res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true})
             return res.json(userData)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (e: any) {
-            next(e)
+        } catch (e) {
+            next(e as ApiError)
         }
     }
 
@@ -39,9 +37,8 @@ class authController {
             const token = await userService.logout(refreshToken);
             res.clearCookie('refreshToken');
             return res.json(token);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (e: any) {
-            next(e)
+        } catch (e) {
+            next(e as ApiError)
         }
     }
 
@@ -51,9 +48,8 @@ class authController {
             const userData = await userService.refresh(refreshToken)
             res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true})
             return res.json(userData);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (e: any) {
-            next(e)
+        } catch (e) {
+            next(e as ApiError)
         }
     }
 
@@ -66,9 +62,8 @@ class authController {
             const userData = await userService.update(req.body)
             res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true})
             return res.json(userData)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (e: any) {
-            next(e)
+        } catch (e) {
+            next(e as ApiError)
         }
     }
 

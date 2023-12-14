@@ -7,6 +7,9 @@ export default function (err: Error | ApiError, req: Request, res: Response, nex
     if (err instanceof ApiError) {
         return res.status(err.status).json({message: err.message, errors: err.errors})
     }
+    if (err instanceof Error) {
+        return res.status(400).json(err.message)
+    }
     // return res.status(500).json({message: 'Непредвиденная ошибка'})
     next()
 }

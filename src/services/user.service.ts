@@ -2,12 +2,12 @@ import bcrypt from 'bcryptjs'
 
 import tokenService from './token.service'
 import {ApiError} from '../exceptions/api.error'
-import { UserData } from '../types.ts/types'
+import { UserUpdateData } from '../types.ts/types'
 import { AppDataSource } from '../data-source'
 import { Users } from '../entity/Users'
 
 class UserService {
-    async registration(incomingValues: UserData) {
+    async registration(incomingValues: Users) {
         const {email, password} = incomingValues
         const candidate = await AppDataSource.manager.findOneBy(Users, {email})
 
@@ -16,27 +16,21 @@ class UserService {
         }
         const hashPassword = await bcrypt.hash(password, 3)
         
-        const userData: Users = {
-            firstName: incomingValues.firstname || null,
-            surName: incomingValues.surname || null,
-            lastName: incomingValues.lastname || null,
-            email: incomingValues.email,
-            password: hashPassword,
-        }
-        const createdUser = await AppDataSource.manager.create(Users, userData)
+        const createdUser: Users = await AppDataSource.manager.create(Users, {...incomingValues, password: hashPassword})
         const savedUser = await AppDataSource.manager.save(Users, createdUser)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {password: deletingPassword, ...resultUserData} = savedUser
 
         const tokens = tokenService.generateTokens({userId: savedUser.user_id, user_role: savedUser.user_role})
         await tokenService.saveToken(savedUser.user_id!, tokens.refreshToken)
 
-        return {...tokens, ...{...savedUser, password: null}}
+        return {...tokens, ...resultUserData}
     }
 
     async login(email: string, password: string) {
         
-        // const user = await AppDataSource.manager.find(Users)
         const user = await AppDataSource.manager.findOneBy(Users, {email})
-
+        
         if (!user) {
             throw ApiError.BadRequest('Пользователь с таким email не найден')
         }
@@ -45,9 +39,12 @@ class UserService {
             throw ApiError.BadRequest('Неверный пароль')
         }
         const tokens = tokenService.generateTokens({userId: user.user_id, user_role: user.user_role})
-
         await tokenService.saveToken(user.user_id!, tokens.refreshToken)
-        return {...tokens, ...{...user, password: null}}
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {password: deletingPassword, ...resultUserData} = user
+
+        return {...tokens, ...resultUserData}
     }
 
     async logout(refreshToken: string) {
@@ -61,19 +58,20 @@ class UserService {
         }
         const userData = tokenService.validateRefreshToken(refreshToken)
         const tokenFromDb = await tokenService.findToken(refreshToken)
-        if (!userData || !tokenFromDb) {
-            throw ApiError.UnauthorizedError()
-        }
-        if (typeof userData === 'string') throw new ApiError(400, 'userData is string')
+        if (!userData || !tokenFromDb) throw ApiError.UnauthorizedError()
+        
         const user = await AppDataSource.manager.findOneBy(Users, {user_id: userData.userId})
         if(!user) throw new ApiError(400, 'cudln`t find user')
 
         const tokens = tokenService.generateTokens({userId: user.user_id, user_role: user.user_role})
         await tokenService.saveToken(user.user_id!, tokens.refreshToken)
-        return {...tokens, ...{...user, password: null}}
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {password: deletingPassword, ...resultUserData} = user
+        return {...tokens, ...resultUserData}
     }
 
-    async update(incomingValues: UserData) {
+    async update(incomingValues: UserUpdateData) {
         const {email, password, newEmail, newPassword} = incomingValues
         
         const candidate = await AppDataSource.manager.findOneBy(Users, {email})
@@ -98,7 +96,9 @@ class UserService {
         const tokens = tokenService.generateTokens({userId: updatedUser.user_id, user_role: updatedUser.user_role})
         await tokenService.saveToken(updatedUser.user_id!, tokens.refreshToken)
 
-        return {...tokens, ...{...updatedUser, password: null}}
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {password: deletingPassword, ...resultUserData} = updatedUser
+        return {...tokens, ...resultUserData}
     }
 }
 

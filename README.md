@@ -38,9 +38,9 @@
 
         ```
         {
-            "firstname": "user",
-            "surname": "for_test",
-            "lastname": "",
+            "firstName": "user",
+            "surName": "for_test",
+            "lastName": "",
             "email": "user@email.com",   // required
             "password": "user"           // required
         }
@@ -81,6 +81,9 @@
 
         ```
         {
+            "firstName": "user",
+            "surName": "for_test",
+            "lastName": "",
             "email": "test@email.com",       // required
             "password": "user",              // required
             "newEmail": "updated@email.com"

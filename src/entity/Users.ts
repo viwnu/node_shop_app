@@ -13,13 +13,13 @@ export class Users {
     user_id?: number
 
     @Column({type: 'varchar', nullable: true})
-    firstName!: string | null
+    firstName?: string | null
 
     @Column({type: 'varchar', nullable: true})
-    surName!: string | null
+    surName?: string | null
 
     @Column({type: 'varchar', nullable: true})
-    lastName!: string | null
+    lastName?: string | null
 
     @Column({
         unique: true

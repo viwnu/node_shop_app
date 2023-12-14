@@ -28,14 +28,12 @@ router.get('/:id', async (req: Request, res: Response, next: (arg0: ApiError) =>
 router.put('/', async (req: Request, res: Response, next: (arg0: ApiError) => void) => {
     try {
         const candidate = await AppDataSource.manager.findOneBy(Users, {user_id: Number(req.body.user_id)})
-        console.log('in admin.user.routes put candidate: ', candidate)
 
         if (candidate === null) {
             next(new ApiError(400, 'culdn`t find user in database'))
         }
         if(req.body.password) req.body.password = await bcrypt.hash(req.body.password, 3)
         await AppDataSource.manager.merge(Users, candidate, req.body)
-        console.log('candidate after merge: ', candidate)
         const updatedUser = await AppDataSource.manager.save(candidate)
         res.json(updatedUser)
 

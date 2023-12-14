@@ -20,7 +20,7 @@ class OrderService {
 
     async getBy(column_name: string, column_value: number) {
         const findedOrders = await AppDataSource.manager.findBy(Orders, {[column_name]: column_value})
-        const findedOrdersWithDetails = Promise.all(findedOrders.map(async (order) => ({
+        const findedOrdersWithDetails = await Promise.all(findedOrders.map(async (order) => ({
             ...order,
             order_details: await AppDataSource.manager.findBy(OrdersDetails, {order_id: order.order_id})
         })))
@@ -29,7 +29,7 @@ class OrderService {
 
     async get() {
         const findedOrders = await AppDataSource.manager.find(Orders)
-        const findedOrdersWithDetails = Promise.all(findedOrders.map(async (order) => ({
+        const findedOrdersWithDetails = await Promise.all(findedOrders.map(async (order) => ({
             ...order,
             order_details: await AppDataSource.manager.findBy(OrdersDetails, {order_id: order.order_id})
         })))

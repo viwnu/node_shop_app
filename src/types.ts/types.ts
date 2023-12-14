@@ -1,16 +1,11 @@
+import { Users } from '../entity/Users'
+
 export type Product = {
     product_id: number | string,
     quantity: number | string
 }
 
-export type UserData = {
-    email: string,
-    password: string,
-    firstname?: string,
-    surname?: string,
-    lastname?: string,
-    role?: string,
-    user_id?: number,
+export type UserUpdateData = Users & {
     newEmail?: string,
     newPassword?: string
 }
