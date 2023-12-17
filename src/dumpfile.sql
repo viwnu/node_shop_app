@@ -17,24 +17,12 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: user_user_role_enum; Type: TYPE; Schema: public; Owner: postgres
---
-
-CREATE TYPE public.user_user_role_enum AS ENUM (
-    'ADMIN',
-    'USER'
-);
-
-
-ALTER TYPE public.user_user_role_enum OWNER TO postgres;
-
---
 -- Name: users_user_role_enum; Type: TYPE; Schema: public; Owner: postgres
 --
 
 CREATE TYPE public.users_user_role_enum AS ENUM (
     'ADMIN',
-    'USER'
+    'CUSTOMER'
 );
 
 
@@ -112,6 +100,41 @@ ALTER SEQUENCE public.carts_details_cart_details_id_seq OWNER TO postgres;
 --
 
 ALTER SEQUENCE public.carts_details_cart_details_id_seq OWNED BY public.carts_details.cart_details_id;
+
+
+--
+-- Name: migrations; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.migrations (
+    id integer NOT NULL,
+    "timestamp" bigint NOT NULL,
+    name character varying NOT NULL
+);
+
+
+ALTER TABLE public.migrations OWNER TO postgres;
+
+--
+-- Name: migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.migrations_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.migrations_id_seq OWNER TO postgres;
+
+--
+-- Name: migrations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.migrations_id_seq OWNED BY public.migrations.id;
 
 
 --
@@ -246,7 +269,7 @@ CREATE TABLE public.users (
     "lastName" character varying,
     email character varying NOT NULL,
     password character varying NOT NULL,
-    user_role public.users_user_role_enum DEFAULT 'USER'::public.users_user_role_enum NOT NULL
+    user_role public.users_user_role_enum DEFAULT 'CUSTOMER'::public.users_user_role_enum NOT NULL
 );
 
 
@@ -286,6 +309,13 @@ ALTER TABLE ONLY public.carts ALTER COLUMN cart_id SET DEFAULT nextval('public.c
 --
 
 ALTER TABLE ONLY public.carts_details ALTER COLUMN cart_details_id SET DEFAULT nextval('public.carts_details_cart_details_id_seq'::regclass);
+
+
+--
+-- Name: migrations id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.migrations ALTER COLUMN id SET DEFAULT nextval('public.migrations_id_seq'::regclass);
 
 
 --
@@ -336,6 +366,16 @@ COPY public.carts_details (cart_details_id, cart_id, product_id, quantity) FROM 
 
 
 --
+-- Data for Name: migrations; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.migrations (id, "timestamp", name) FROM stdin;
+2	1702806737741	UserRefactoring1702806737741
+3	1702807181233	UserRefactoring1702807181233
+\.
+
+
+--
 -- Data for Name: orders; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -375,7 +415,11 @@ COPY public.products (product_id, product_name, manufacture, category, price, de
 COPY public.tokens (user_id, refresh_token) FROM stdin;
 1	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJfcm9sZSI6IlVTRVIiLCJpYXQiOjE3MDIyMzUyMTYsImV4cCI6MTcwMjIzNzAxNn0.HVsAV2vfIApziu392ibB_VbTwH18JZDnSEeEUT7GGQc
 2	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsInVzZXJfcm9sZSI6IlVTRVIiLCJpYXQiOjE3MDIyNTQzNTEsImV4cCI6MTcwMjI1NjE1MX0.WN_GWcuw3zEUv9fRLEMlvQrd4xsNHl_go9zBy-xmXp0
-3	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInVzZXJfcm9sZSI6IkFETUlOIiwiaWF0IjoxNzAyMjU3NzI1LCJleHAiOjE3MDIyNTk1MjV9.3IBDVKRxA7_KcOFVak3wN2jAmACPvvJqr9vOInhL2d4
+3	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInVzZXJfcm9sZSI6IkFETUlOIiwiaWF0IjoxNzAyNDgzNzQyLCJleHAiOjE3MDI0ODU1NDJ9.C4DRpe4gP54ATk3NhaJACFRvMAkxWJE0DHcjPHsP-ho
+4	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsInVzZXJfcm9sZSI6IlVTRVIiLCJpYXQiOjE3MDI0OTgyNjQsImV4cCI6MTcwMjUwMDA2NH0.g8EIlrGnuxcol2QOHpu55F-qYdY4UK6b-pIEARuVoMM
+5	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUsInVzZXJfcm9sZSI6IlVTRVIiLCJpYXQiOjE3MDI0OTgzNjcsImV4cCI6MTcwMjUwMDE2N30.Sn0VgWZcZX-ZL_NN13_Wnd-zavF2xJlEhBFLrxq6uUA
+6	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjYsInVzZXJfcm9sZSI6IlVTRVIiLCJpYXQiOjE3MDI0OTg0MjQsImV4cCI6MTcwMjUwMDIyNH0.8ze2BN9t--bneTHpOMcj4GMGWj9pJ8Lz0FDb049hTyM
+7	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjcsInVzZXJfcm9sZSI6IlVTRVIiLCJpYXQiOjE3MDI0OTk2MTMsImV4cCI6MTcwMjUwMTQxM30.hUOnFd8Yw2XG98rILiDmvLqqIdDUWzoM9ZhRfuIT98o
 \.
 
 
@@ -384,9 +428,13 @@ COPY public.tokens (user_id, refresh_token) FROM stdin;
 --
 
 COPY public.users (user_id, "firstName", "surName", "lastName", email, password, user_role) FROM stdin;
-1	another	for	test	updated@email.com	$2a$04$YkM0E4ML7DnAV4/0g8HcVOGrXahOMWppBbsMNlCZCsFjfLn10YRKy	USER
 3	admin	for_test	\N	admin@email.com	$2a$04$.h5oLh.nGo7wsqtmZrrpn.CsKT3PKQ8sSgNovpYtx2CclYtYdSInG	ADMIN
-2	super	puper	test	test1@email.com	$2a$04$lO.qtm3OTuBvrlzf7KirluEPm.lFPj5hQbbPXydcE19ofBmSjtwOy	USER
+1	another	for	test	updated@email.com	$2a$04$YkM0E4ML7DnAV4/0g8HcVOGrXahOMWppBbsMNlCZCsFjfLn10YRKy	CUSTOMER
+2	super	puper	test	test1@email.com	$2a$04$lO.qtm3OTuBvrlzf7KirluEPm.lFPj5hQbbPXydcE19ofBmSjtwOy	CUSTOMER
+4	\N	\N	\N	test@email.com	$2a$04$NtvM9AwdN0s31lT7jM5RkeglpTnM/OQ1jYpCIBSpC5wmM0ntzIvue	CUSTOMER
+5	\N	\N	\N	test2@email.com	$2a$04$R25EArBHaJYURlnsrMFLN.G5ZGVRMlCP0U/8NILOApbI9Tfnu0wx6	CUSTOMER
+6	\N	\N	\N	test3@email.com	$2a$04$KiVNDiSd5fnfVU.Jzz1vUul7Ujfte1iu5JFw3Ig8SVLeZifktx/Im	CUSTOMER
+7	\N	without	firstname	test4@email.com	$2a$04$dlf1MsUhKJcAbgRul.cINuIZsyjl8L7dulfMjn1nbnI.RuBLUDPOq	CUSTOMER
 \.
 
 
@@ -402,6 +450,13 @@ SELECT pg_catalog.setval('public.carts_cart_id_seq', 1, true);
 --
 
 SELECT pg_catalog.setval('public.carts_details_cart_details_id_seq', 4, true);
+
+
+--
+-- Name: migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.migrations_id_seq', 3, true);
 
 
 --
@@ -429,7 +484,7 @@ SELECT pg_catalog.setval('public.products_product_id_seq', 4, true);
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_user_id_seq', 3, true);
+SELECT pg_catalog.setval('public.users_user_id_seq', 7, true);
 
 
 --
@@ -454,6 +509,14 @@ ALTER TABLE ONLY public.carts
 
 ALTER TABLE ONLY public.tokens
     ADD CONSTRAINT "PK_8769073e38c365f315426554ca5" PRIMARY KEY (user_id);
+
+
+--
+-- Name: migrations PK_8c82d7f526340ab734260ea46be; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.migrations
+    ADD CONSTRAINT "PK_8c82d7f526340ab734260ea46be" PRIMARY KEY (id);
 
 
 --
