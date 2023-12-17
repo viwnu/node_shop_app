@@ -3,7 +3,7 @@ import { Entity, PrimaryGeneratedColumn, Column } from "typeorm"
 
 export enum UserRole {
     ADMIN = "ADMIN",
-    USER = "USER"
+    CUSTOMER = "CUSTOMER"
 }
 
 @Entity()
@@ -32,7 +32,7 @@ export class Users {
     @Column({
         type: "enum",
         enum: UserRole,
-        default: UserRole.USER,
+        default: UserRole.CUSTOMER,
     })
     user_role?: UserRole
 

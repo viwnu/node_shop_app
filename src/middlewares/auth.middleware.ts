@@ -1,7 +1,8 @@
 import { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
+import { UserRole } from '../entity/Users'
 
-export default function (role: string = 'USER') {
+export default function (role: string = UserRole.CUSTOMER) {
     return function (req: Request, res: Response, next: () => void) {
         if (req.method === "OPTIONS") {
             next()
@@ -19,7 +20,7 @@ export default function (role: string = 'USER') {
             if (!hasRequiredRole) {
                 return res.status(403).json({message: "У вас нет доступа"})
             }
-            if(decodedData.user_role !== 'ADMIN') {
+            if(decodedData.user_role !== UserRole.ADMIN) {
                 req.body.user_id = decodedData.userId
                 req.body.user_role = decodedData.user_role
             } else if(req.body.user_id === decodedData.userId) {
